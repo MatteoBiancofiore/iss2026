@@ -1,0 +1,28 @@
+package main.java.conway.domain;
+
+public class Life implements LifeInterface {
+	
+	private Grid grid;
+	
+	public Life() {
+		
+		grid = new Grid();
+		
+	}
+	
+
+	@Override
+	public void nextGen() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void show() {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	
+	
+}

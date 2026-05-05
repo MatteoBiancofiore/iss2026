@@ -1,0 +1,9 @@
+package main.java.conway.domain;
+
+public interface IGrid {
+
+	public Cell getCell(int row, int col);
+	
+	
+
+}

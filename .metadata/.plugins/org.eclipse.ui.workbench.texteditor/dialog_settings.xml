@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="java.lang.Class">
+		<item key="replaceBarOpen" value="false"/>
+		<list key="findhistory">
+			<item value="syncer"/>
+			<item value="nextLong"/>
+			<item value="Timer"/>
+			<item value="for"/>
+			<item value="client.set"/>
+			<item value="org.gradle"/>
+			<item value="MainConwayGui"/>
+			<item value="conway26appl.MainConwayGui"/>
+		</list>
+	</section>
+</section>

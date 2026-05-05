@@ -1,0 +1,15 @@
+package main.java.conway.domain;
+
+public interface LifeInterface {
+
+	public Grid getNextGen();
+	
+	public Grid getCurrentGen();
+	
+	private int countPopulation(int row, int col)
+	
+	public void nextGen();
+	
+	public void show();
+	
+}

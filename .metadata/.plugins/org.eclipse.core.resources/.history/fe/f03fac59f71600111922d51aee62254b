@@ -1,0 +1,87 @@
+package main.java.conway.domain;
+
+public class Life implements LifeInterface {
+
+	private final int DIM = 5;
+
+	// grid for current and next Generation
+
+	private Grid currentGen;
+	private Grid nextGen;
+
+	public Life() {
+		this.currentGen = new Grid(DIM, DIM);
+		this.nextGen = new Grid(DIM, DIM);
+	}
+
+	public int countPopulation(int row, int col) {
+		int res = 0;
+
+		// Quadrato 3x3
+		for (int i = row - 1; i <= row + 1; i++) {
+			for (int j = col - 1; j <= col + 1; j++) {
+
+				// salta la cella stessa
+				if (i == row && j == col)
+					continue;
+
+				if (i >= 0 && i < DIM && j >= 0 && j < DIM) {
+					if (this.currentGen.getCell(i, j).getStatus()) {
+						res++;
+					}
+				}
+			}
+		}
+		return res;
+	}
+
+	@Override
+	public Grid getCurrentGen() 	
+		return currentGen;
+	}
+
+	@Override
+	public Grid getNextGen() {
+		return nextGen;
+	}
+
+	@Override
+	public void nextGen() {
+		
+		int count = 0;
+		for (int i = 0; i < DIM; i++) {
+			for (int j = 0; j < DIM; j++) {
+				count = countPopulation(i, j);
+				Cell cell = currentGen.getCell(i, j);
+
+				if ((count < 2 || count > 3) && cell.getStatus())
+					cell.setStatus(false);
+				else if (count == 3 && !cell.getStatus())
+					cell.setStatus(true);
+
+			}
+		}
+
+	}
+
+	@Override
+	public void show() {
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("Stato corrente:\n");
+		
+		for (int i = 0; i < DIM; i++) {
+			for (int j = 0; j < DIM; j++) {
+				if(currentGen.getCell(i, j).getStatus())
+					sb.append("O");
+				else
+					sb.append("X");
+			}
+			sb.append("\n");
+		}
+		
+		System.out.println(sb.toString());
+
+	}
+
+}

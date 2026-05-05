@@ -1,0 +1,42 @@
+package main.java.test;
+
+import static org.junit.Assert.assertFalse;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import main.java.conway.domain.Grid;
+import main.java.conway.domain.IGrid;
+import main.java.conway.domain.LifeInterface;
+import main.java.conway.domain.Life;
+
+public class LifeTest {
+
+	private final int DIM = 5;
+	private LifeInterface Life;
+
+	@Before
+	public void setup() {
+		life = new Life();
+		g.getCell(0, 0).setStatus(true);
+		g.getCell(0,1).setStatus(true);
+		g.getCell(2,1).setStatus(true);
+		System.out.println("ConwayLifeTest | setup");
+	}
+
+	@After
+	public void down() {
+		System.out.println("ConwayLifeTest | down");
+	}
+
+	@Test
+	public void testCount() {
+		for (int i = 0; i < DIM; i++) {
+			for (int j = 0; j < DIM; j++) {
+				assertFalse(g.getCell(i, j).getStatus());
+			}
+		}
+	}
+
+}

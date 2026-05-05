@@ -1,0 +1,174 @@
+System fireflysync
+
+Dispatch cellstate : cellstate(X,Y,COLOR)
+Event syn : syn(FREQUENCY)
+Event sonar_data : distance(D)
+Dispatch stop_syn : stop_syn(0)
+
+Context ctxfireflysynch ip [ host="localhost" port=8040 ]
+Context ctxgrid ip [host="127.0.0.1" port=8050 ] // contesto remoto
+
+ExternalQActor griddisplay context ctxgrid //definizione attore esterno al sistema, essendo un attore esterno non ha stati
+
+
+// ========== FIREFLY 1 ==========
+
+QActor firefly1 context ctxfireflysynch {
+	
+	[#
+		var X = 1
+		var Y = 1
+		var Frequency = java.util.Random.nextLong(500L, 1000L)
+	#]
+	
+	State randomFlash initial {
+		forward griddisplay -m cellstate : cellstate($X,$Y,1)
+	    delayVar Frequency
+	    forward griddisplay -m cellstate : cellstate($X,$Y,0)
+	}
+	Transition t0 
+			whenTimeVar Frequency -> randomFlash
+			whenEvent syn -> syncedFlash
+		
+
+	State syncedFlash {
+		onMsg(syn : syn(Frequency)){
+			[# Frequency = payloadArg(0).toLong() #]
+	    	println("$name | Synchronizing to $Frequency ms") color yellow	
+		}
+	}
+	Transition t1 
+		whenEvent syn -> syncedFlash
+		whenMsg stop_syn -> randomFlash		 
+
+}
+
+// ========== FIREFLY 2 ==========
+
+QActor firefly2 context ctxfireflysynch {
+	
+	[#
+		var X = 2
+		var Y = 1
+		var Frequency = java.util.Random.nextLong(500L, 1000L)
+	#]
+	
+	State randomFlash initial {
+		forward griddisplay -m cellstate : cellstate($X,$Y,1)
+	    delayVar Frequency
+	    forward griddisplay -m cellstate : cellstate($X,$Y,0)
+	}
+	Transition t0 
+			whenTimeVar Frequency -> randomFlash
+			whenEvent syn -> syncedFlash
+		
+
+	State syncedFlash {
+		onMsg(syn : syn(Frequency)){
+			[# Frequency = payloadArg(0).toLong() #]
+	    	println("$name | Synchronizing to $Frequency ms") color yellow	
+		}
+	}
+	Transition t1 
+		whenEvent syn -> syncedFlash
+		whenMsg stop_syn -> randomFlash		 
+
+}
+
+
+// ========== FIREFLY 3 ==========
+
+QActor firefly3 context ctxfireflysynch {
+	
+	[#
+		var X = 3
+		var Y = 1
+		var Frequency = java.util.Random.nextLong(500L, 1000L)
+	#]
+	
+	State randomFlash initial {
+		forward griddisplay -m cellstate : cellstate($X,$Y,1)
+	    delayVar Frequency
+	    forward griddisplay -m cellstate : cellstate($X,$Y,0)
+	}
+	Transition t0 
+			whenTimeVar Frequency -> randomFlash
+			whenEvent syn -> syncedFlash
+		
+
+	State syncedFlash {
+		onMsg(syn : syn(Frequency)){
+			[# Frequency = payloadArg(0).toLong() #]
+	    	println("$name | Synchronizing to $Frequency ms") color yellow	
+		}
+	}
+	Transition t1 
+		whenEvent syn -> syncedFlash
+		whenMsg stop_syn -> randomFlash		 
+
+}
+
+QActor syncer context ctxfireflysynch {
+	
+	[# 
+		var Timer = 10000L
+		var Frequency = 0L
+		var DMIN = 50
+	#]
+	
+	State s0 initial {
+		println("Initialize 10sec countdown...") color red	
+	}
+	Goto initSync
+	
+	State initSync {
+		[# Frequency = java.util.Random().nextLong(500L,1000L) #]
+	}
+	Transition t0 
+			whenTimeVar Timer -> timerHandler
+			whenEvent sonar_data -> handle_sonar
+			
+	
+	State timerHandler {
+		println("$name | Synchronizing with frequency $Frequency") color blue
+		emit syn : syn($Frequency)
+		delayVar Frequency
+	}
+	Goto timerHandler
+	
+	State handle_sonar {
+		onMsg (sonar_data : distance(Distance)) {
+			[# var D = payloadArg(0).toInt() #]
+			
+			println("$name: Current sonar distance = $D") color magenta
+			
+			if [# D < DMIN #] {
+				emit syn : syn($Frequency) // sync
+			}
+			else {
+				 forward firefly1 -m stop_syn : stop_syn
+				 forward firefly2 -m stop_syn : stop_syn
+				 forward firefly3 -m stop_syn : stop_syn
+			}
+		}
+	}
+	Goto handle_sonar
+	
+}
+
+QActor sonar context ctxfireflysynch {
+	
+	State initSonar initial {
+		println("Sonar started...") color green
+	}
+	Goto emitData
+	
+	State emitData {
+		
+		[# var Distance = java.util.Random().nextInt(10, 100) #]
+		emit sonar_data : distance($Distance)
+		delay 5000
+	}
+	Goto emitData
+	
+}

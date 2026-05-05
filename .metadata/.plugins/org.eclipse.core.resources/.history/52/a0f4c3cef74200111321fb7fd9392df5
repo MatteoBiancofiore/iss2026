@@ -1,0 +1,47 @@
+System firefly
+
+Dispatch cellstate : cellstate(X,Y,COLOR)
+
+Context ctxfirefly ip [ host="localhost" port=8040 ]
+
+QActor firefly1 context ctxfirefly {
+	
+	State s0 initial {
+		println("Firefly alive") color green
+	}
+	Goto flash
+	
+	State flash {
+		[# var Timer = java.util.Random().nextLong(500L,1000L ) #]
+		delayVar Timer
+		//TurnoOn
+		forward griddisplaymock -m cellstate : cellstate(1,1,1)
+		delayVar Timer
+		//TurnoOff
+		forward griddisplaymock -m cellstate : cellstate(1,1,0)
+		
+	}
+}
+
+QActor griddisplaymock context ctxfirefly {
+	
+	State s0 initial {
+		println("GridDisplayMock alive") color green
+	}
+	Transition t0 
+		whenMsg cellstate -> elabMsg
+		
+		
+	State elabMsg {
+		
+		printCurrentMessage color blue
+		println("\n")
+				
+	}
+		
+	
+		
+		
+		
+	
+}

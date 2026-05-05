@@ -1,0 +1,12 @@
+package main.java.conway.domain;
+
+public interface IGrid {
+	
+	public int getRowsNum();
+	public int getColsNum();
+	public ICell getCell(int row, int col);
+	public void clear();
+	
+	
+
+}

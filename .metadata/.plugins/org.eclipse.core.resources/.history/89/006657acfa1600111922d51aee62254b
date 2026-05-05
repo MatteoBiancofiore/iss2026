@@ -1,0 +1,44 @@
+package main.java.test;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import main.java.conway.domain.Grid;
+import main.java.conway.domain.IGrid;
+
+public class GridTest {
+
+	private final int DIM = 5;
+	private IGrid g;
+
+	@Before
+	public void setup() {
+		g = new Grid();
+		System.out.println("ConwayLifeTest | setup");
+	}
+
+	@After
+	public void down() {
+		System.out.println("ConwayLifeTest | down");
+	}
+
+	@Test
+	public void testGridAllDead() {
+		for (int i = 0; i < DIM; i++) {
+			for (int j = 0; j < DIM; j++) {
+				assertFalse(g.getCell(i, j).isAlive());
+			}
+		}
+	}
+	
+	@Test
+	public void testGetCell() {
+		
+	}
+	
+
+}

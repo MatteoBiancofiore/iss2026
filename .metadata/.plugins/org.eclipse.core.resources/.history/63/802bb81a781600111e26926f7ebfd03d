@@ -1,0 +1,29 @@
+package main.java.conway.domain;
+
+public class Grid implements IGrid {
+	
+	private final int DIM = 5;
+	private Cell[][] grid = new Cell[DIM][DIM];
+	
+	public Grid(int rows, int cols) {
+		for(int i = 0; i < rows; i++) {
+			for(int j = 0; j < cols; j++) {
+				this.grid[i][j] = new Cell();
+			}
+		}
+	}
+	
+	public Grid(Grid g) {
+		for(int i = 0; i < DIM; i++) {
+			for(int j = 0; j < DIM; j++) {
+				this.grid[i][j] = g.getCell(i, j);
+			}
+		}
+	}
+	
+	@Override
+	public Cell getCell(int row, int col) {
+		return this.grid[row][col];
+	}
+	
+}
