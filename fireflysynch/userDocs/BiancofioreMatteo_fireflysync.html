@@ -1,0 +1,268 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Firefly synch</title>
+    <link rel="stylesheet" href="./css/mystyle.css" />
+  </head>
+
+  <body>
+    <div class="container">
+      <p>
+        Link al codice:
+        <a href="../src/main/resources/logback.xml">logback.xml</a>
+      </p>
+
+      <div id="top">
+        <h1>Firefly synch</h1>
+      </div>
+
+      <div class="body">
+        <h2>Introduction</h2>
+        <p>
+          <b>Goal</b>: Realizzazione di un sistema costituito da 3 lucciole che
+          si accendono e spengono in modo sincronizzato.
+        </p>
+
+        <h2>Requirements</h2>
+        <div class="req-box">
+          Costruire il simulatore di un sistema costituito da 3 lucciole.
+          Inizialemente, le lucciole lampeggiamo ciascuna con una frequenza
+          (costante) propria.
+          <pre>
+<b>A</b>) Dopo 10 secondi le lucciole devono lampeggiare in modo sincronizzato 
+<b>B</b>) Il sistema è dotato anche di un sonar . Quando il sonar rileva un ostacolo a una distanza minore di una distanza prefissata     DMIN, le lucciole devoono lampeggiare in modo sincronizzato. 
+Quando la distanza dell’ostacolo (ri)supera DMIN, le lucciole tornano a lampeggiare in modo random.</pre>
+        </div>
+
+        <h2>Requirement analysis</h2>
+        <p>
+          I requisiti sono stati analizzati e formalizzati attraverso
+          l'identificazione delle entità principali del sistema, le loro
+          responsabilità e le operazioni che devono essere implementate per
+          soddisfare i requisiti funzionali. <br />
+          La descrizione del comportamento del sistema è stata formalizzata
+          attraverso il linguaggio QAK, ogni entità è rappresentata come un
+          attore, con stati e transizioni che descrivono il suo comportamento in
+          risposta a diversi eventi.
+        </p>
+        <ul>
+          <li>
+            <b>Lucciola (Firefly):</b> Entità proattiva che gestisce il proprio
+            lampeggio. Possiede due modalità: autonoma (random) e comandata
+            (synced).
+          </li>
+          <li>
+            <b>Sonar:</b> Sensore (simulato) che emette dati sulla distanza di
+            un ostacolo.
+          </li>
+          <li>
+            <b>Syncer (Controller):</b> Organo di controllo incaricato di
+            monitorare il tempo e i dati del sonar per decidere lo stato di
+            sincronizzazione del sistema.
+          </li>
+        </ul>
+
+        <p>
+          La comunicazione avviene tramite <b>Eventi</b> per la sincronizzazione
+          (messaggio broadcast 1-a-N) e <b>Dispatch</b> per l'aggiornamento
+          della visualizzazione sulla Grid.
+        </p>
+
+        <pre><code>System fireflysync
+
+QActor firefly1 context ctxfireflysynch {
+    
+    // variabili di stato
+    
+    State randomFlash initial {
+        forward griddisplay -m cellstate : cellstate($X,$Y,1)
+        delay 100
+        forward griddisplay -m cellstate : cellstate($X,$Y,0)
+    }
+}
+
+QActor syncer context ctxfireflysynch {
+    
+    // variabili di stato
+
+    State init initial {
+        // impostazione timer per sincronizzazione  
+    }
+}
+
+QActor sonar context ctxfireflysynch {
+
+    State init initial {
+        // impostazione sonar per rilevamento ostacoli
+    }
+}</code></pre>
+
+        <h2>Problem analysis</h2>
+
+        <div class="highlight-box">
+          <b>Sfida Tecnica: Gestione della Concorrenza tra Timer e Sonar</b
+          ><br />
+          Uno dei problemi principali emersi è il conflitto tra il countdown di
+          10 secondi e gli eventi asincroni del Sonar. L'utilizzo di una
+          transizione standard <code>whenTime</code> verrebbe interrotto da ogni
+          evento del Sonar, resettando il countdown. La soluzione adottata
+          prevede l'uso del tempo di sistema
+          (<code>System.currentTimeMillis()</code>) per garantire un conteggio
+          robusto e indipendente dalle interruzioni.
+        </div>
+
+        <h3>Architettura Logica delle Firefly</h3>
+
+        <div>
+          <pre><code>State randomFlash initial {
+    forward griddisplay -m cellstate : cellstate($X,$Y,1)
+    delay 100
+    forward griddisplay -m cellstate : cellstate($X,$Y,0)
+}
+Transition t0 
+    whenTimeVar Frequency -> randomFlash
+    whenEvent syn -> syncedFlash
+
+State syncedFlash {
+    onMsg(syn : syn(Frequency)){
+        [# Frequency = payloadArg(0).toLong() #]
+        println("$name | Synchronizing to $Frequency ms") color yellow  
+    }
+    forward griddisplay -m cellstate : cellstate($X,$Y,1)
+    delay 100
+    forward griddisplay -m cellstate : cellstate($X,$Y,0)
+}
+Transition t1 
+    whenEvent syn -> syncedFlash
+    whenMsg stop_syn -> randomFlash</code></pre>
+
+          <h3>Logica del Syncer (Orchestratore)</h3>
+
+          Il Syncer agisce come un metronomo. Monitora costantemente due flag:
+          <code>IsPermanent</code> (basato sul tempo) e
+          <code>IsSonarSync</code> (basato sulla distanza). Se almeno uno dei
+          due è vero, emette l'evento di sincronizzazione.
+
+          <pre><code>State work {
+    [# 
+        if(!IsPermanent && (System.currentTimeMillis() - StartTime) > 10000) {
+            IsPermanent = true 
+        }
+    #]
+    if [# IsPermanent || IsSonarSync #] {
+        emit syn : syn($Frequency)
+    }
+}</code></pre>
+
+          <p>
+            La sincronizzazione delle lucciole può essere modellata tenendo
+            traccia dell'istante in cui il sistema viene avviato e
+            confrontandolo con l'istante corrente, controllando che siano
+            passati 10 secondi in seguito il syncer invia un messaggio a tutte
+            le lucciole per permettere loro di sincronizzarsi.
+          </p>
+
+          <pre><code>State emitData {
+
+    [# var Distance = java.util.Random().nextInt(10, 100) #]
+    emit sonar_data : distance($Distance)
+    delay 5000
+}
+Goto emitData</code></pre>
+        </div>
+
+        <h2>Test plans</h2>
+        <p>
+          Il piano di test mira a verificare la transizione corretta tra gli
+          stati del sistema:
+        </p>
+        <ul>
+          <li>
+            <b>Test 1 (Reattività Sonar):</b> Verificare che portando un
+            ostacolo a distanza < DMIN prima dei 10s, le lucciole si
+            sincronizzino immediatamente.
+          </li>
+          <li>
+            <b>Test 2 (Rilascio Sync):</b> Verificare che se l'ostacolo viene
+            allontanato prima dei 10s, le lucciole ricevano lo
+            <code>stop_syn</code> e tornino a frequenze indipendenti.
+          </li>
+          <li>
+            <b>Test 3 (Soglia Temporale):</b> Verificare che allo scoccare dei
+            10s il sistema passi in modalità sincronizzata permanente, ignorando
+            i successivi dati del sonar.
+          </li>
+        </ul>
+
+        <h2>Project</h2>
+
+        <p>
+          Il progetto realizza un sistema distribuito dove il controllo è
+          centralizzato nel <b>Syncer</b> ma l'esecuzione è decentralizzata
+          nelle <b>Firefly</b>. L'uso di <b>ExternalQActor</b> per la
+          <code>griddisplay</code> permette di separare la logica di business
+          dalla visualizzazione, facilitando il deployment su nodi diversi e
+          migliorando la visualizzazione dello stato delle lucciole. Griddisplay
+          è definito come un attore esterno al sistema, in quanto non fa parte
+          del sistema di sincronizzazione delle lucciole, ma è utilizzato per
+          visualizzare lo stato delle lucciole.<br />
+          Il syncer notifica le lucciole tramite eventi per avvisarle sulla
+          sincronizzazione, si sceglie il meccanismo di notifica basato su
+          eventi poichè permette una comunicazione efficace e decentralizzata,
+          non c'è bisogno di avvisare singolarmente ogni lucciola.
+        </p>
+
+        <pre><code>System fireflysync
+
+Dispatch cellstate : cellstate(X,Y,COLOR)
+Event syn : syn(FREQUENCY)
+Event sonar_data : distance(D)
+Dispatch stop_syn : stop_syn(0)
+
+Context ctxfireflysynch ip [ host="localhost" port=8040 ]
+Context ctxgrid ip [host="127.0.0.1" port=8050 ]
+
+ExternalQActor griddisplay context ctxgrid</code></pre>
+
+        <h2>Testing</h2>
+        <p>
+          Il testing è stato condotto osservando i log degli attori e la
+          risposta della Grid. La transizione alla fase permanente avviene
+          correttamente senza risentire del traffico di eventi generato dal
+          sonar.
+        </p>
+
+        <h2>Deployment</h2>
+        <p>
+          Il sistema è configurato per essere eseguito tramite Gradle. È
+          necessario avviare prima il contesto della
+          <code>griddisplay</code> (rappresentazione grafica) e successivamente
+          il contesto <code>ctxfireflysynch</code>.
+        </p>
+
+        <h2>Maintenance</h2>
+        <p>
+          L'architettura basata su eventi facilita la manutenzione: è possibile
+          aggiungere nuove lucciole aggiungendo nuovi attori nel file QAK senza
+          modificare la logica del Syncer o del Sonar.
+        </p>
+      </div>
+
+      <div class="footer">
+        <div class="footer-info">
+          By Matteo Biancofiore <br />
+          Email:
+          <a href="mailto:matteo.biancofiore2@studio.unibo.it"
+            >matteo.biancofiore2@studio.unibo.it</a
+          ><br />
+          GIT repo:
+          <a href="https://github.com/MatteoBiancofiore/iss2026"
+            >github.com/MatteoBiancofiore/iss2026</a
+          >
+        </div>
+        <img src="./img/pic.jpeg" alt="picture" width="80" height="80" />
+      </div>
+    </div>
+  </body>
+</html>
