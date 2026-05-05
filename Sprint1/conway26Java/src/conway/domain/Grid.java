@@ -42,18 +42,13 @@ public class Grid implements IGrid {
         return cells[row][col].getStatus();
     }
 
-    @Override
-    public void resetGrid() {
-        for (int i = 0; i < rowsNum; i++) {
+	@Override
+	public void clear() {
+		for (int i = 0; i < rowsNum; i++) {
             for (int j = 0; j < colsNum; j++) {
                 cells[i][j].setStatus(false);
             }
         }
-    }
-
-	@Override
-	public void clear() {
-		
 	}
 
 }

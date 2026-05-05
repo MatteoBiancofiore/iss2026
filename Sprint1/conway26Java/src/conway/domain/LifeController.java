@@ -44,7 +44,7 @@ public class LifeController implements ILifeController {
 			outDev.displayGrid(life.getGrid());
 		this.stopGame();
 		generation = 0;
-		life.resetGrid();
+		life.getGrid().clear();
 		if (outDev != null)
             outDev.displayGrid(life.getGrid());
 	}

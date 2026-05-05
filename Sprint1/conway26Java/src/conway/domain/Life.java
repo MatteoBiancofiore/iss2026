@@ -79,12 +79,6 @@ public class Life implements ILife {
 	}
 
 	@Override
-	public void resetGrid() {
-		this.currentGen.clear();
-		this.nextGen.clear();
-	}
-
-	@Override
 	public ICell getCell(int row, int col) {
 		return this.currentGen.getCell(row, col);
 	}
