@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">
-<refactoring comment="Rename resource &apos;qakdemo26/src/demoSendReceiveEmit.qaktt&apos; to &apos;demoSendReceiveEmit.qak&apos;" description="Rename resource &apos;demoSendReceiveEmit.qaktt&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="src/demoSendReceiveEmit.qaktt" name="demoSendReceiveEmit.qak" stamp="1776771303661" updateReferences="true"/>
-</session>

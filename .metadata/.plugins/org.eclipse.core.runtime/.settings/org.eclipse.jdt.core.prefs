@@ -1,8 +1,0 @@
-eclipse.preferences.version=1
-org.eclipse.jdt.core.classpathVariable.ECLIPSE_HOME=/home/matte/eclipse/dsl-2025-12/eclipse/
-org.eclipse.jdt.core.classpathVariable.JRE_LIB=/home/matte/.p2/pool/plugins/org.eclipse.justj.openjdk.hotspot.jre.full.linux.x86_64_21.0.10.v20260205-0638/jre/lib/jrt-fs.jar
-org.eclipse.jdt.core.classpathVariable.JRE_SRC=/home/matte/.p2/pool/plugins/org.eclipse.justj.openjdk.hotspot.jre.full.linux.x86_64_21.0.10.v20260205-0638/jre/lib/src.zip
-org.eclipse.jdt.core.classpathVariable.JRE_SRCROOT=
-org.eclipse.jdt.core.classpathVariable.JUNIT_HOME=/home/matte/.p2/pool/plugins/org.junit_4.13.2.v20240929-1000.jar
-org.eclipse.jdt.core.classpathVariable.M2_REPO=/home/matte/.m2/repository
-org.eclipse.jdt.core.codeComplete.visibilityCheck=enabled
